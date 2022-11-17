@@ -14,12 +14,26 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
-
 var summaries = new[]
 {
     "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
 };
+
+app.MapGet("/", () =>
+{
+    var now = DateTime.UtcNow;
+    return Results.Text(@$"
+    <html>
+    <head>
+    <link rel='stylesheet' href='https://cdn.simplecss.org/simple-v1.css'>
+    </head>
+    <body>
+    <h1>Hello from Dotnet on Salus</h1>
+    <p>The time now in UTC is {now.ToUniversalTime().ToString()} </p>
+    </body>
+    </html>
+    ", "text/html");
+});//.Produces(200, contentType: "text/html");
 
 app.MapGet("/weatherforecast", () =>
 {
