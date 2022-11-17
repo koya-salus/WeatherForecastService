@@ -28,7 +28,8 @@ app.MapGet("/", () =>
     <link rel='stylesheet' href='https://cdn.simplecss.org/simple-v1.css'>
     </head>
     <body>
-    <h1>Hello from Dotnet on Salus</h1>
+    <h1>Hello from Dotnet on Salus during Demo</h1>
+    <p> Everyone is watching </p>
     <p>The time now in UTC is {now.ToUniversalTime().ToString()} </p>
     </body>
     </html>
