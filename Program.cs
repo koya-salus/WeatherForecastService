@@ -5,7 +5,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
+builder.Services.AddLogging();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -20,8 +20,9 @@ var summaries = new[]
     "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
 };
 
-app.MapGet("/", () =>
+app.MapGet("api/v2", (ILogger<Program> logger) =>
 {
+    logger.LogInformation("Home Page");
     var now = DateTime.UtcNow;
     return Results.Text(@$"
     <html>
@@ -36,8 +37,10 @@ app.MapGet("/", () =>
     ", "text/html");
 });//.Produces(200, contentType: "text/html");
 
-app.MapGet("api/v1/continents", () =>
+app.MapGet("api/v2/continents", (ILogger<Program> logger) =>
 {
+    
+    logger.LogInformation("continents page");
     var now = DateTime.UtcNow;
     return Results.Text(@$"
     <html>
@@ -52,8 +55,9 @@ app.MapGet("api/v1/continents", () =>
     ", "text/html");
 });//.Produces(200, contentType: "text/html");
     
-app.MapGet("api/v1/countries", () =>
+app.MapGet("api/v2/countries", (ILogger<Program> logger) =>
 {
+    logger.LogInformation("countries page");
     var now = DateTime.UtcNow;
     return Results.Text(@$"
     <html>
@@ -61,15 +65,16 @@ app.MapGet("api/v1/countries", () =>
     <link rel='stylesheet' href='https://cdn.simplecss.org/simple-v1.css'>
     </head>
     <body>
-    <h1> Countries Weatherforecast  </h1>
-    <p>The time now in UTC is {now.ToUniversalTime().ToString()} </p>
+    <h1> Countries Weatherforecast at {now.ToUniversalTime().ToString()}  </h1>
+    <p>The time now in UTC is  </p>
     </body>
     </html>
     ", "text/html");
 });//.Produces(200, contentType: "text/html");
     
-app.MapGet("api/v1/random", () =>
+app.MapGet("api/v2/random", (ILogger<Program> logger) =>
 {
+    logger.LogInformation("random page");
     var forecast = Enumerable.Range(1, 5).Select(index =>
         new WeatherForecast
         (
@@ -78,6 +83,7 @@ app.MapGet("api/v1/random", () =>
             summaries[Random.Shared.Next(summaries.Length)]
         ))
         .ToArray();
+    var random = new Random();
 
      return Results.Text(@$"
     <html>
@@ -86,7 +92,7 @@ app.MapGet("api/v1/random", () =>
     </head>
     <body>
     <h1> Random Forecast  </h1>
-    <pre>  {forecast} <pre>                    
+    <pre>  {forecast[random.Next(1, summaries.Length)]} <pre>                    
     </body>
     </html>
     ", "text/html");
