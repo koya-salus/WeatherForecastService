@@ -3,4 +3,4 @@ Hello world
 
 Add Emoji 
 
-⭐️ (Filled star) — ⭐️
+⭐️ (Filled star)
