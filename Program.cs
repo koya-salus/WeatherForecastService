@@ -71,7 +71,24 @@ app.MapGet("api/v2/countries", (ILogger<Program> logger) =>
     </html>
     ", "text/html");
 });//.Produces(200, contentType: "text/html");
-    
+
+app.MapGet("api/v2/error", (ILogger<Program> logger) =>
+{
+    logger.LogError("errors page");
+    var now = DateTime.UtcNow;
+    return Results.Text(@$"
+    <html>
+    <head>
+    <link rel='stylesheet' href='https://cdn.simplecss.org/simple-v1.css'>
+    </head>
+    <body>
+    <h1> Error Log at {now.ToUniversalTime().ToString()}  </h1>
+    <p>The time now in UTC is  </p>
+    </body>
+    </html>
+    ", "text/html");
+});
+
 app.MapGet("api/v2/random", (ILogger<Program> logger) =>
 {
     logger.LogInformation("random page");
