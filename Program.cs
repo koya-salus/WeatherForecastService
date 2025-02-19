@@ -89,6 +89,8 @@ app.MapGet("api/v2/error", (ILogger<Program> logger) =>
     ", "text/html");
 });
 
+app.MapGet("/health", () => Results.Ok("Healthy"));
+
 app.MapGet("api/v2/random", (ILogger<Program> logger) =>
 {
     logger.LogInformation("random page");
