@@ -23,6 +23,7 @@ var summaries = new[]
 app.MapGet("api/v2", (ILogger<Program> logger) =>
 {
     logger.LogInformation("Home Page");
+    logger.LogError("Home Page error");
     var now = DateTime.UtcNow;
     return Results.Text(@$"
     <html>
