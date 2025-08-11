@@ -1,3 +1,2 @@
 # dotnet-hello
 
-test
