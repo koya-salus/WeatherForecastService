@@ -41,7 +41,7 @@ var summaries = new[]
 
 app.MapGet("api/v2", (ILogger<Program> logger) =>
 {
-    logger.LogInformation("Home Page warning");
+    logger.LogInformation("Home Page Warning");
     var now = DateTime.UtcNow;
     return Results.Text(@$"
     <html>
