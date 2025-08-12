@@ -93,7 +93,7 @@ app.MapGet("api/v2/countries", (ILogger<Program> logger) =>
 
 app.MapGet("api/v2/error", (ILogger<Program> logger) =>
 {
-    logger.LogError("the page");
+    logger.LogError("the page warning");
     var now = DateTime.UtcNow;
     return Results.Text(@$"
     <html>
