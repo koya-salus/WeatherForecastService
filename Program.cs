@@ -156,25 +156,13 @@ app.MapGet("api/v2/random", (ILogger<Program> logger) =>
 })
 .WithName("GetWeatherForecast");
 
-app.MapGet("api/v2/file", (string? key, string? type, ILogger<Program> logger) =>
+app.MapGet("api/v2/read-file", (string? key, string? type, ILogger<Program> logger) =>
 {
+    // Handle missing query params
     if (string.IsNullOrEmpty(key) || string.IsNullOrEmpty(type))
     {
         logger.LogInformation("No query params passed. Showing default page.");
-
-        var html = @"
-            <html>
-            <head>
-              <link rel='stylesheet' href='https://cdn.simplecss.org/simple-v1.css'>
-            </head>
-            <body>
-              <h1> File Viewer </h1>
-              <p>Use query parameters <code>?key=&lt;ENV_KEY&gt;&type=json|image</code></p>
-              <p>Example: <code>/api/v2/file?key=MY_JSON_FILE&type=json</code></p>
-            </body>
-            </html>";
-
-        return Results.Text(html, "text/html");
+        return Results.Text(BuildDefaultPage(), "text/html");
     }
 
     var filePath = Environment.GetEnvironmentVariable(key);
@@ -193,66 +181,90 @@ app.MapGet("api/v2/file", (string? key, string? type, ILogger<Program> logger) =
 
     logger.LogInformation("Loading file from path: {FilePath}", filePath);
 
-    if (type.Equals("json", StringComparison.OrdinalIgnoreCase))
+    try
     {
-        try
+        return type.ToLower() switch
         {
-            var jsonContent = File.ReadAllText(filePath);
-
-            using var doc = JsonDocument.Parse(jsonContent);
-            var prettyJson = JsonSerializer.Serialize(doc.RootElement, new JsonSerializerOptions { WriteIndented = true });
-
-            var html = @$"
-                <html>
-                <head>
-                  <link rel='stylesheet' href='https://cdn.simplecss.org/simple-v1.css'>
-                </head>
-                <body>
-                  <h1> JSON File from {key} </h1>
-                  <pre>{System.Net.WebUtility.HtmlEncode(prettyJson)}</pre>
-                </body>
-                </html>";
-
-            logger.LogInformation("Successfully served JSON file: {FilePath}", filePath);
-            return Results.Text(html, "text/html");
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Invalid JSON in file {FilePath}", filePath);
-            return Results.BadRequest("Invalid JSON format in file.");
-        }
+            "json" => Results.Text(BuildJsonPage(filePath, key), "text/html"),
+            "image" => Results.Text(BuildImagePage(filePath, key), "text/html"),
+            "pdf" => Results.Text(BuildPdfPage(filePath, key), "text/html"),
+            _ => Results.BadRequest("Unsupported file type. Use 'json', 'image', or 'pdf'.")
+        };
     }
-    else if (type.Equals("image", StringComparison.OrdinalIgnoreCase))
+    catch (Exception ex)
     {
-        try
-        {
-            var bytes = File.ReadAllBytes(filePath);
-            var base64 = Convert.ToBase64String(bytes);
-
-            var html = @$"
-                <html>
-                <head>
-                  <link rel='stylesheet' href='https://cdn.simplecss.org/simple-v1.css'>
-                </head>
-                <body>
-                  <h1> Image from {key} </h1>
-                  <img src='data:image/png;base64,{base64}' alt='Image from file {filePath}' style='max-width:600px;' />
-                </body>
-                </html>";
-
-            logger.LogInformation("Successfully served image file: {FilePath}", filePath);
-            return Results.Text(html, "text/html");
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Failed to load image from {FilePath}", filePath);
-            return Results.BadRequest("Could not load image.");
-        }
+        logger.LogError(ex, "Error processing file {FilePath}", filePath);
+        return Results.BadRequest("Failed to process the file.");
     }
+})
+.WithName("GetFile");
 
-    logger.LogWarning("Unsupported file type '{Type}' requested for file {FilePath}", type, filePath);
-    return Results.BadRequest("Unsupported file type. Use 'json' or 'image'.");
-});
+
+// ---------------- Helpers ---------------- //
+
+static string BuildDefaultPage() => @"
+<html>
+<head>
+  <link rel='stylesheet' href='https://cdn.simplecss.org/simple-v1.css'>
+</head>
+<body>
+  <h1> File Viewer </h1>
+  <p>Use query parameters <code>?key=&lt;ENV_KEY&gt;&type=json|image|pdf</code></p>
+  <p>Example: <code>/api/v2/file?key=MY_JSON_FILE&type=json</code></p>
+</body>
+</html>";
+
+static string BuildJsonPage(string filePath, string key)
+{
+    var jsonContent = File.ReadAllText(filePath);
+    using var doc = JsonDocument.Parse(jsonContent);
+    var prettyJson = JsonSerializer.Serialize(doc.RootElement, new JsonSerializerOptions { WriteIndented = true });
+
+    return $@"
+<html>
+<head>
+  <link rel='stylesheet' href='https://cdn.simplecss.org/simple-v1.css'>
+</head>
+<body>
+  <h1> JSON File from {key} </h1>
+  <pre>{System.Net.WebUtility.HtmlEncode(prettyJson)}</pre>
+</body>
+</html>";
+}
+
+static string BuildImagePage(string filePath, string key)
+{
+    var bytes = File.ReadAllBytes(filePath);
+    var base64 = Convert.ToBase64String(bytes);
+
+    return $@"
+<html>
+<head>
+  <link rel='stylesheet' href='https://cdn.simplecss.org/simple-v1.css'>
+</head>
+<body>
+  <h1> Image from {key} </h1>
+  <img src='data:image/png;base64,{base64}' alt='Image from {filePath}' style='max-width:600px;' />
+</body>
+</html>";
+}
+
+static string BuildPdfPage(string filePath, string key)
+{
+    var bytes = File.ReadAllBytes(filePath);
+    var base64 = Convert.ToBase64String(bytes);
+
+    return $@"
+<html>
+<head>
+  <link rel='stylesheet' href='https://cdn.simplecss.org/simple-v1.css'>
+</head>
+<body>
+  <h1> PDF from {key} </h1>
+  <iframe src='data:application/pdf;base64,{base64}' width='100%' height='600px'></iframe>
+</body>
+</html>";
+}
 
 
 app.Run("http://0.0.0.0:8080");
