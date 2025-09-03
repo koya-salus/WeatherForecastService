@@ -188,7 +188,8 @@ app.MapGet("api/v2/read-file", (string? key, string? type, ILogger<Program> logg
             "json" => Results.Text(BuildJsonPage(filePath, key), "text/html"),
             "image" => Results.Text(BuildImagePage(filePath, key), "text/html"),
             "pdf" => Results.Text(BuildPdfPage(filePath, key), "text/html"),
-            _ => Results.BadRequest("Unsupported file type. Use 'json', 'image', or 'pdf'.")
+            "csv" =>  Results.Text(BuildCSVPage(filePath, key), "text/html"),
+            _ => Results.BadRequest("Unsupported file type. Use 'json', 'image', csv, or 'pdf'.")
         };
     }
     catch (Exception ex)
@@ -209,7 +210,7 @@ static string BuildDefaultPage() => @"
 </head>
 <body>
   <h1> File Viewer </h1>
-  <p>Use query parameters <code>?key=&lt;ENV_KEY&gt;&type=json|image|pdf</code></p>
+  <p>Use query parameters <code>?key=&lt;ENV_KEY&gt;&type=json|image|pdf|csv</code></p>
   <p>Example: <code>/api/v2/file?key=MY_JSON_FILE&type=json</code></p>
 </body>
 </html>";
@@ -265,6 +266,24 @@ static string BuildPdfPage(string filePath, string key)
 </body>
 </html>";
 }
+
+static string BuildCSVPage(string filePath, string key)
+{
+    var bytes = File.ReadAllBytes(filePath);
+    var base64 = Convert.ToBase64String(bytes);
+
+    return $@"
+<html>
+<head>
+  <link rel='stylesheet' href='https://cdn.simplecss.org/simple-v1.css'>
+</head>
+<body>
+  <h1> CSV from {key} </h1>
+  <iframe src='data:text/csv;base64,{base64}' width='100%' height='600px'></iframe>
+</body>
+</html>";
+}
+
 
 
 app.Run("http://0.0.0.0:8080");
