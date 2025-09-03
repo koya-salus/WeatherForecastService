@@ -270,7 +270,7 @@ static string BuildPdfPage(string filePath, string key)
 static string BuildCSVPage(string filePath, string key)
 {
     var bytes = File.ReadAllBytes(filePath);
-    var base64 = Convert.ToBase64String(bytes);
+    var csvText = System.Text.Encoding.UTF8.GetString(bytes);
 
     return $@"
 <html>
@@ -278,13 +278,13 @@ static string BuildCSVPage(string filePath, string key)
   <link rel='stylesheet' href='https://cdn.simplecss.org/simple-v1.css'>
 </head>
 <body>
-  <h1> CSV from {key} </h1>
-  <iframe src='data:text/csv;base64,{base64}' width='100%' height='600px'></iframe>
+  <h1>CSV from {key}</h1>
+  <pre style='white-space: pre-wrap; word-wrap: break-word;'>
+{System.Net.WebUtility.HtmlEncode(csvText)}
+  </pre>
 </body>
 </html>";
 }
-
-
 
 app.Run("http://0.0.0.0:8080");
 
