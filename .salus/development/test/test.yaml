@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: koya-prod
+  name: koya-dev
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nginx-deployment
-  namespace: koya-prod
+  namespace: koya-dev
   labels:
     app: nginx
 spec:
@@ -30,7 +30,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: nginx-service
-  namespace: koya-prod
+  namespace: koya-dev
 spec:
   selector:
     app: nginx
